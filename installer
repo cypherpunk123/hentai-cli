@@ -23,8 +23,10 @@ dep_ch () {
 
 install () {
 	cwd=$(pwd)
-	SHELL=~/.bashrc
-	echo 'alias hen-cli="'$cwd'/hentai-cli"' >> $SHELL
+	BASH=~/.bashrc
+	ZSH=~/.zshrc
+	echo 'alias hen-cli="'$cwd'/hentai-cli"' >> $BASH
+	echo 'alias hen-cli="'$cwd'/hentai-cli"' >> $ZSH
 }
 
 progress "Checking required dependencies..."
