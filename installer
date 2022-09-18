@@ -1,0 +1,35 @@
+#!/bin/sh
+
+err () {
+	printf "\33[2K\r\033[1;31m%s\033[0m\n" "$*" >&2
+}
+
+die () {
+	err "$*"
+	exit 1
+}
+
+progress() {
+	printf "\33[2K\r\033[1;34m%s\033[0m" "$1"
+}
+
+dep_ch () {
+	for dep; do
+		if ! command -v "$dep" >/dev/null ; then
+			die "Program \"$dep\" not found. Please install it."
+		fi
+	done
+}
+
+install () {
+	cwd=$(pwd)
+	SHELL=~/.bashrc
+	echo 'alias hen-cli="'$cwd'/hentai-cli"' >> $SHELL
+}
+
+progress "Checking required dependencies..."
+dep_ch "curl" "sed" "grep" "aria2c" || true
+printf "\nAll dependencies checked and complete!"
+install
+
+
