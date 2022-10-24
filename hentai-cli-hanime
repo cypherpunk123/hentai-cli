@@ -1,0 +1,13 @@
+#!/bin/sh
+
+read choice
+case $choice in
+	7)
+		liner='1p';;
+	4)
+		liner='2p';;
+	3)
+		liner='3p';;
+esac
+video=$(curl -s $1 | sed 's/\u002F//g' | tr , '\n' | grep m3u8s | cut -c8- | sed 's/\\/\//g' | sed -n $liner)
+mpv $video
