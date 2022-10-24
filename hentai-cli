@@ -20,9 +20,9 @@ help_text () {
 	Options:
 	    -h show helptext
 	    -d download episode
-	    -p download episode to specified directory
+	    -r download episode to specified directory
 	    -v use VLC as the media player
-	    -r select provider [1: hentaimama, 2: hentaihaven]
+	    -p select provider [1: hentaimama, 2: hentaihaven]
 	EOF
 }
 
@@ -137,9 +137,9 @@ player_fn="mpv"
 is_download=0
 download_dir=.
 
-while getopts 'r:dhp:v' OPT; do
+while getopts 'p:dhp:v' OPT; do
         case $OPT in
-		r)
+		p)
 			provider=$OPTARG
 			if [ "$provider" == 2 ]; then
 				base_url="https://hentaihaven.xxx"
@@ -148,7 +148,7 @@ while getopts 'r:dhp:v' OPT; do
                 d)
                         is_download=1
                         ;;
-                p)
+                r)
                         is_download=1
 			download_dir=$OPTARG
                         ;;
