@@ -54,7 +54,7 @@ stream () {
 		vlc)
 			uname -a | grep -qE "[Aa]ndroid" && am start --user 0 -a android.intent.action.VIEW -d "$1" -n org.videolan.vlc/org.videolan.vlc.gui.video.VideoPlayerActivity -e "title" "$2" > /dev/null 2>&1 || setsid -f "$player_fn" --http-referrer="$base_url" "$1" > /dev/null 2>&1;;
 		mpv)
-			if [ "$provider" == 1 ]; then
+			if [ "$provider" -ne 2 ]; then
 				uname -a | grep -qE "[Aa]ndroid" && am start --user 0 -a android.intent.action.VIEW -d "$1" -n is.xyz.mpv/.MPVActivity > /dev/null 2>&1 || setsid -f "$player_fn" "$1" --referrer="$base_url" --force-media-title="$2" > /dev/null 2>&1
 			else
 				mpv /tmp/hentai.m3u8
@@ -76,19 +76,19 @@ download () {
 get_show() {
 	echo $provider
 	printf "Getting shows from $base_url"
-	if [ "$provider" == 1 ]; then
-		results=$(curl -s "$base_url/?s=$query" | sed -nE 's_^[[:space:]]*<a href="https://hentaimama.io/tvshows/(.*)/">.$_\1_p')
-	else
-		results=$(curl -s "$base_url/?s=$query&post_type=wp-manga" | sed -nE 's_.*<a href="https://hentaihaven.xxx/watch/(.*)/">.*_\1_p')
-	fi
+	case $provider in
+	    1)	results=$(curl -s "$base_url/?s=$query" | sed -nE 's_^[[:space:]]*<a href="https://hentaimama.io/tvshows/(.*)/">.$_\1_p');;
+	    2)	results=$(curl -s "$base_url/?s=$query&post_type=wp-manga" | sed -nE 's_.*<a href="https://hentaihaven.xxx/watch/(.*)/">.*_\1_p') ;;
+	    3)	results=$(curl -s -X POST "https://search.htv-services.com/" -A uwu -d "{\"search_text\":\"$query\",\"tags\": [],\"tags_mode\": \"AND\",\"brands\": [],\"blacklist\": [],\"order_by\": \"created_at_unix\",\"ordering\": \"desc\",\"page\": 0 }" -H 'content-type:application/json' | tr '{|}' '\n' | tr -d '\\' | sed -nE 's_.*slug":"([^"]*)".*_\1_p') ;;
+	esac
 	[ -z "$results" ] && printf "\33[2K\r${c_red}No search results found${c_reset}" && exit 0
 	result=$(printf "%s" "$results" | fzf)
 	[ -z "$result" ] && err "No hentai selected" && exit 0
-	if [ "$provider" == 1 ]; then
-		ep_list=$(curl -s "$base_url/tvshows/$result/" | sed -nE 's_^[[:space:]]*<a href="https://hentaimama.io/(.*)/">.$_\1_p' | tac)
-	else
-		ep_list=$(curl -s "https://hentaihaven.xxx/watch/$result/" | sed -nE ' s_.*<a href="https://hentaihaven.xxx/watch/'"$result"'/(.*)">.*_\1_p' | grep -v ' ' | tac)
-	fi
+	case $provider in
+	    1)	ep_list=$(curl -s "$base_url/tvshows/$result/" | sed -nE 's_^[[:space:]]*<a href="https://hentaimama.io/(.*)/">.$_\1_p' | tac);;
+	    2)	ep_list=$(curl -s "https://hentaihaven.xxx/watch/$result/" | sed -nE ' s_.*<a href="https://hentaihaven.xxx/watch/'"$result"'/(.*)">.*_\1_p' | grep -v ' ' | tac);;
+	    3)	ep_list=$result;;
+	esac
 	noofeps=$(printf "%s\n" "$ep_list" | wc -l)
 	[ "$noofeps" -eq 1 ] && ep_no=1 || input "$noofeps"
 	get_ep_link
@@ -97,27 +97,26 @@ get_show() {
 get_ep_link(){
 	tput clear
 	printf "${c_blue}Loading Episode $ep_no"
-	id=0
-	printf "Getting Episode for $base_url"
 	ep_id=$(printf "%s" "$ep_list" | sed -n "${ep_no}p")
-	printf "\n $ep_id"
-	id=$(curl -s "$base_url/$ep_id/" | sed -nE "s/.*?p=(.*)'.*/\1/p")
+	if [ "$provider" -eq 1 ];then
+	    printf "\n $ep_id"
+	    id=$(curl -s "$base_url/$ep_id/" | sed -nE "s/.*?p=([^']*)'.*/\1/p")
+	fi
 	display=$(printf "%s" "$ep_id" | cut -d'/' -f2- | tr "-" " ")
-	[ -z "$id" ] && printf "${c_red}Episode doesn't exist on this site${c_reset}" || play_link
+	play_link
 }
 
 play_link() {
 	printf "\33[2K\r${c_blue}Fetching video link"
 	if [ "$provider" == 1 ]; then
-		data="$(curl -s "$(curl -s "$base_url/wp-admin/admin-ajax.php" -d "action=get_player_contents&a=$id" -H "X-Requested-With:XMLHttpRequest" | tr -d '\\' | sed -nE 's/.*src="(.*)" width.*,.*/\1/p')")"
-		video_link="$(printf "%s" "$data" | sed -nE 's/[[:space:]]*<source src="(.*)" typ.*/\1/p')"
+		video_link="$(curl -s "$(curl -s "$base_url/wp-admin/admin-ajax.php" -d "action=get_player_contents&a=$id" -H "X-Requested-With:XMLHttpRequest" | tr -d '\\' | sed -nE 's/.*src="(.*)" width.*,.*/\1/p')" | sed -nE 's/[[:space:]]*<source src="(.*)" typ.*/\1/p;s/[[:space:]]*file: "(.*)".$/\1/p' | head -1)"
+	elif [ "$provider" == 3 ]; then
+		video_link="$(curl -s "https://hanime.tv/api/v8/video?id=$ep_id&" -A uwu | tr '{|}' '\n' | sed -nE 's_.*height.*"url":"([^"]+)".*_\1_p' | head -1)"
 	else
-		printf "Fetching link from hentaihaven"
 		video_link="$(curl -s -H 'Host: mymaster-uk.cyou' http://135.181.139.178/api/v3/hh/"`curl -s $base_url/watch/$result/ | grep "preview-$ep_id" | sed -r 's/<img src="(\S+)".*/\1/g' | sed -r 's/.*hh\/(\S+)\/.*/\1/g'`"/7sop/index.txt > /tmp/hentai.m3u8)"
 	fi
 
-	[ -z "$video_link" ] && video_link="$(printf "%s" "$data" | sed -nE 's/[[:space:]]*file: "(.*)".$/\1/p')"
-	if [ -z "$video_link" ] && [ $provider == 1 ]; then 
+	if [ -z "$video_link" ]; then 
 	    printf "\33[2K\r${c_red}Video Url not found${c_reset}\n"
 	else
 	    printf "\33[2K\r${c_green}Video link fetched${c_reset}\n"
