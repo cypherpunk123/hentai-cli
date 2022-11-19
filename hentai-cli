@@ -22,7 +22,7 @@ help_text () {
 	    -d download episode
 	    -r download episode to specified directory
 	    -v use VLC as the media player
-	    -p select provider [1: hentaimama, 2: hentaihaven]
+	    -p select provider [1: hentaimama, 2: hentaihaven, 3: hanime.tv, 4: hentaigasm]
 	EOF
 }
 
@@ -80,6 +80,7 @@ get_show() {
 	    1)	results=$(curl -s "$base_url/?s=$query" | sed -nE 's_^[[:space:]]*<a href="https://hentaimama.io/tvshows/(.*)/">.$_\1_p');;
 	    2)	results=$(curl -s "$base_url/?s=$query&post_type=wp-manga" | sed -nE 's_.*<a href="https://hentaihaven.xxx/watch/(.*)/">.*_\1_p') ;;
 	    3)	results=$(curl -s -X POST "https://search.htv-services.com/" -A uwu -d "{\"search_text\":\"$query\",\"tags\": [],\"tags_mode\": \"AND\",\"brands\": [],\"blacklist\": [],\"order_by\": \"created_at_unix\",\"ordering\": \"desc\",\"page\": 0 }" -H 'content-type:application/json' | tr '{|}' '\n' | tr -d '\\' | sed -nE 's_.*slug":"([^"]*)".*_\1_p') ;;
+	    4) results=$(curl -s "http://hentaigasm.com/?s=toshi" | sed -nE 's_.*<a href="http://hentaigasm.com/(.*)/" rel="bookmark".*_\1_p') ;;
 	esac
 	[ -z "$results" ] && printf "\33[2K\r${c_red}No search results found${c_reset}" && exit 0
 	result=$(printf "%s" "$results" | fzf)
@@ -88,6 +89,7 @@ get_show() {
 	    1)	ep_list=$(curl -s "$base_url/tvshows/$result/" | sed -nE 's_^[[:space:]]*<a href="https://hentaimama.io/(.*)/">.$_\1_p' | tac);;
 	    2)	ep_list=$(curl -s "https://hentaihaven.xxx/watch/$result/" | sed -nE ' s_.*<a href="https://hentaihaven.xxx/watch/'"$result"'/(.*)">.*_\1_p' | grep -v ' ' | tac);;
 	    3)	ep_list=$result;;
+	    4)  ep_list=$result;;
 	esac
 	noofeps=$(printf "%s\n" "$ep_list" | wc -l)
 	[ "$noofeps" -eq 1 ] && ep_no=1 || input "$noofeps"
