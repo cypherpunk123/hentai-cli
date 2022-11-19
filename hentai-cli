@@ -110,13 +110,12 @@ get_ep_link(){
 
 play_link() {
 	printf "\33[2K\r${c_blue}Fetching video link"
-	if [ "$provider" == 1 ]; then
-		video_link="$(curl -s "$(curl -s "$base_url/wp-admin/admin-ajax.php" -d "action=get_player_contents&a=$id" -H "X-Requested-With:XMLHttpRequest" | tr -d '\\' | sed -nE 's/.*src="(.*)" width.*,.*/\1/p')" | sed -nE 's/[[:space:]]*<source src="(.*)" typ.*/\1/p;s/[[:space:]]*file: "(.*)".$/\1/p' | head -1)"
-	elif [ "$provider" == 3 ]; then
-		video_link="$(curl -s "https://hanime.tv/api/v8/video?id=$ep_id&" -A uwu | tr '{|}' '\n' | sed -nE 's_.*height.*"url":"([^"]+)".*_\1_p' | head -1)"
-	else
-		video_link="$(curl -s -H 'Host: mymaster-uk.cyou' http://135.181.139.178/api/v3/hh/"`curl -s $base_url/watch/$result/ | grep "preview-$ep_id" | sed -r 's/<img src="(\S+)".*/\1/g' | sed -r 's/.*hh\/(\S+)\/.*/\1/g'`"/7sop/index.txt > /tmp/hentai.m3u8)"
-	fi
+	
+	case $provider in
+	    1) video_link="$(curl -s "$(curl -s "$base_url/wp-admin/admin-ajax.php" -d "action=get_player_contents&a=$id" -H "X-Requested-With:XMLHttpRequest" | tr -d '\\' | sed -nE 's/.*src="(.*)" width.*,.*/\1/p')" | sed -nE 's/[[:space:]]*<source src="(.*)" typ.*/\1/p;s/[[:space:]]*file: "(.*)".$/\1/p' | head -1)";;
+	    2) video_link="$(curl -s -H 'Host: mymaster-uk.cyou' http://135.181.139.178/api/v3/hh/"`curl -s $base_url/watch/$result/ | grep "preview-$ep_id" | sed -r 's/<img src="(\S+)".*/\1/g' | sed -r 's/.*hh\/(\S+)\/.*/\1/g'`"/7sop/index.txt > /tmp/hentai.m3u8)";;
+	    *) video_link="$(curl -s "https://hanime.tv/api/v8/video?id=$ep_id&" -A uwu | tr '{|}' '\n' | sed -nE 's_.*height.*"url":"([^"]+)".*_\1_p' | head -1)";;
+	esac
 
 	if [ -z "$video_link" ]; then 
 	    printf "\33[2K\r${c_red}Video Url not found${c_reset}\n"
