@@ -31,7 +31,7 @@ err () {
 }
 
 get_query () {
-	[ -z "$*" ] && printf "${c_magenta}Search\n>${c_reset} " && read -r query || query=$*
+	[ -z "$*" ] && printf "${c_magenta}Searching $base_url\n>${c_reset} " && read -r query || query=$*
 	query=$(printf "%s" "$query" | tr " " "+")
 }
 
@@ -93,7 +93,7 @@ get_show() {
 }
 
 get_ep_link(){
-	tput clear
+	#tput clear
 	printf "${c_blue}Loading Episode $ep_no"
 	ep_id=$(printf "%s" "$ep_list" | sed -n "${ep_no}p")
 	printf "\n $ep_id"
@@ -103,7 +103,7 @@ get_ep_link(){
 	    id=$(curl -s "$ep_id/" | sed -nE 's_.*src="([^"]*)".*allowfullscreen.*_\1_p')
 	fi
 	display=$(printf "%s" "$ep_id" | cut -d'/' -f2- | tr "-" " ")
-	[ -z "$id" ] && printf "\33[2K\r${c_red}Episode doesn't exist on this site${c_reset}" || play_link
+	[ -z "$display" ] && printf "\33[2K\r${c_red}Episode doesn't exist on this site${c_reset}" || play_link
 
 }
 
@@ -158,6 +158,10 @@ while getopts 'p:dhp:v' OPT; do
 			provider=$OPTARG
 			if [ "$provider" == 2 ]; then
 				base_url="https://hentaihaven.xxx"
+			elif [ "$provider" == 3 ]; then
+				base_url="https://hanime.tv"
+			elif [ "$provider" == 4 ]; then
+				base_url="https://hentaigasm.com"
 			fi
 			;;
                 d)
