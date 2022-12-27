@@ -138,12 +138,15 @@ play_link() {
             eval "$(curl -s "$id" -A "$agent" | sed -nE "s_.*en = '([^']*)';_en='\1'_p;s_.*iv = '([^']*)';_iv='\1'_p")"
 		    printf "%s" "------WebKitFormBoundaryO4RclAGiEthL5Q8u
 Content-Disposition: form-data; name='action'
+
 zarat_get_data_player_ajax
 ------WebKitFormBoundaryO4RclAGiEthL5Q8u
 Content-Disposition: form-data; name='a'
+
 $en
 ------WebKitFormBoundaryO4RclAGiEthL5Q8u
 Content-Disposition: form-data; name='b'
+
 $iv
 ------WebKitFormBoundaryO4RclAGiEthL5Q8u--" > $cache_file
             video_link=$(curl -A "$agent" -F "file=@$cache_file" -H 'content-type:multipart/form-data; boundary=----WebKitFormBoundaryO4RclAGiEthL5Q8u' -s 'https://hentaihaven.xxx/wp-content/plugins/player-logic/api.php' | sed 's/\\//g' | sed -nE 's_.*src":"([^"]*)",.*_\1_p') ;;
