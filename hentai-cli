@@ -127,11 +127,12 @@ Content-Disposition: form-data; name='b'
 $iv
 ------WebKitFormBoundaryO4RclAGiEthL5Q8u--" > $cache_file
 	       video_link=$(curl -A "$agent" -F "file=@$cache_file" -H 'content-type:multipart/form-data; boundary=----WebKitFormBoundaryO4RclAGiEthL5Q8u' -s 'https://hentaihaven.xxx/wp-content/plugins/player-logic/api.php' | sed 's/\\//g' | sed -nE 's_.*src":"([^"]*)",.*_\1_p') ;;
-	    *) video_link="$(curl -s "https://hanime.tv/api/v8/video?id=$ep_id&" -A uwu | tr '{|}' '\n' | sed -nE 's_.*height.*"url":"([^"]+)".*_\1_p' | head -1)";;
+	    3) video_link="$(curl -s "https://hanime.tv/api/v8/video?id=$ep_id&" -A uwu | tr '{|}' '\n' | sed -nE 's_.*height.*"url":"([^"]+)".*_\1_p' | head -1)";;
+	    4) video_link="$(curl -s "http://hentaigasm.com/$ep_id/" | grep "mp4" | sed 1q | grep -o '".*"' | sed 's/"//g')" ;;
 	esac
 
 	if [ -z "$video_link" ]; then 
-	    printf "\33[2K\r${c_red}Video Url not found${c_reset}\n"
+	    printf "\33[2K\r${c_red}Video Url for $ep_id not found${c_reset}\n"
 	else
 	    printf "\33[2K\r${c_green}Video link fetched${c_reset}\n"
 	    printf "\n%s\n" "$video_link"
