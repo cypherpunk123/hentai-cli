@@ -25,8 +25,8 @@ print_help_text () {
 	EOF
 }
 
-# Prints the print_erroror message
-print_print_erroror () {
+# Prints the print_error message
+print_error () {
 	printf "$c_red%s$c_reset\n" "$*" >&2
 }
 
@@ -40,7 +40,7 @@ get_provider () {
 
 		# Check if the input is empty, not a number, or outside of the valid range
 		while [ -z "$x" ] || ! [ "$x" -eq "$x" ] 2>/dev/null || [ "$x" -lt "1" ] 2>/dev/null || [ "$x" -gt "4" ] 2>/dev/null ;do
-			print_print_erroror "Invalid choice"
+			print_print_error "Invalid choice"
 			printf "${c_magenta}Select a provider [1: hentaimama, 2: hentaihaven, 3: hanime.tv, 4: hentaigasm]\n>$c_reset "
 			read -r x
 		done
@@ -74,7 +74,7 @@ get_episode_number () {
 
 	# Check if the input is empty, not a number, or outside of the valid range
 	while [ -z "$x" ] || ! [ "$x" -eq "$x" ] 2>/dev/null || [ "$x" -lt "1" ] 2>/dev/null || [ "$x" -gt "$1" ] 2>/dev/null ;do
-		print_print_erroror "Invalid choice"
+		print_print_error "Invalid choice"
 		printf "${c_magenta}To specify a range, use: start_number end_number (Episodes: 1-%s)\n>$c_reset " "$1"
 		read -r x
 	done
@@ -115,7 +115,7 @@ download () {
     case $1 in
         *m3u8)
             # Use ffmpeg to download the file if m3u8
-            ffmpeg -loglevel print_erroror -stats -referer "$base_url" -i "$1" -c copy "$download_dir/$u2.mp4"
+            ffmpeg -loglevel print_error -stats -referer "$base_url" -i "$1" -c copy "$download_dir/$u2.mp4"
             ;;
         *)
             # Use aria2c for default
@@ -156,7 +156,7 @@ $iv
             video_link="$(curl -s "http://hentaigasm.com/$ep_id/" | grep "mp4" | sed 1q | grep -o '".*"' | sed 's/"//g')" ;;
     esac
 
-    # If the video link is not found, display an print_erroror message
+    # If the video link is not found, display an print_error message
     if [ -z "$video_link" ]; then 
         printf "\33[2K\r${c_red}Video Url for $ep_id not found${c_reset}\n"
     else
