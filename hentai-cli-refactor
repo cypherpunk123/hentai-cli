@@ -264,6 +264,15 @@ cache_file="${XDG_CACHE_HOME:-$HOME/.cache}/hen-tmp"
 download=0
 download_dir=.
 
+while getopts "p:q:e:d" opt; do
+    case $opt in
+        *|h)
+            print_help_text
+            exit 0
+            ;;
+    esac
+done
+
 get_provider
 if [ "$provider" == 2 ]; then
     base_url="https://hentaihaven.xxx"
